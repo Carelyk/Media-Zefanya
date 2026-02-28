@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, Sparkles } from "lucide-react";
 import { DescriptionItem } from "@/types/description";
@@ -8,11 +7,20 @@ interface Props {
   onItemsChange: (items: DescriptionItem[]) => void;
 }
 
+const COLUMNS: { key: keyof DescriptionItem; label: string; placeholder: string }[] = [
+  { key: "namaBarang", label: "Nama Barang", placeholder: "Contoh: Madu" },
+  { key: "warna", label: "Warna", placeholder: "Kuning keemasan" },
+  { key: "tekstur", label: "Tekstur", placeholder: "Kental, lengket" },
+  { key: "ukuran", label: "Ukuran", placeholder: "Kecil/sedang/besar" },
+  { key: "rasa", label: "Rasa", placeholder: "Manis" },
+  { key: "manfaat", label: "Manfaat / Kegunaan", placeholder: "Menyembuhkan batuk..." },
+];
+
 const DescriptionTable = ({ items, onItemsChange }: Props) => {
   const addRow = () => {
     onItemsChange([
       ...items,
-      { id: crypto.randomUUID(), namaBarang: "", deskripsi: "", khasiat: "" },
+      { id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", ukuran: "", rasa: "", manfaat: "" },
     ]);
   };
 
@@ -41,11 +49,13 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
         <table className="w-full">
           <thead>
             <tr className="bg-muted">
-              <th className="px-4 py-3 text-left font-heading font-bold text-foreground text-sm">No</th>
-              <th className="px-4 py-3 text-left font-heading font-bold text-foreground text-sm">Nama Barang</th>
-              <th className="px-4 py-3 text-left font-heading font-bold text-foreground text-sm">Deskripsi</th>
-              <th className="px-4 py-3 text-left font-heading font-bold text-foreground text-sm">Khasiat / Kegunaan</th>
-              <th className="px-4 py-3 text-center font-heading font-bold text-foreground text-sm w-16">Aksi</th>
+              <th className="px-3 py-3 text-left font-heading font-bold text-foreground text-xs w-10">No</th>
+              {COLUMNS.map((col) => (
+                <th key={col.key} className="px-3 py-3 text-left font-heading font-bold text-foreground text-xs">
+                  {col.label}
+                </th>
+              ))}
+              <th className="px-3 py-3 text-center font-heading font-bold text-foreground text-xs w-12">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -59,38 +69,22 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
                   transition={{ delay: index * 0.05 }}
                   className="border-t border-border hover:bg-muted/50 transition-colors"
                 >
-                  <td className="px-4 py-3 font-heading font-bold text-primary">{index + 1}</td>
-                  <td className="px-4 py-3">
-                    <input
-                      type="text"
-                      value={item.namaBarang}
-                      onChange={(e) => updateItem(item.id, "namaBarang", e.target.value)}
-                      placeholder="Contoh: Madu"
-                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-sm"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <textarea
-                      value={item.deskripsi}
-                      onChange={(e) => updateItem(item.id, "deskripsi", e.target.value)}
-                      placeholder="Tuliskan deskripsi barang..."
-                      rows={2}
-                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-sm resize-none"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <textarea
-                      value={item.khasiat}
-                      onChange={(e) => updateItem(item.id, "khasiat", e.target.value)}
-                      placeholder="Tuliskan khasiat atau kegunaan..."
-                      rows={2}
-                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-sm resize-none"
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-2 font-heading font-bold text-primary text-sm">{index + 1}</td>
+                  {COLUMNS.map((col) => (
+                    <td key={col.key} className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item[col.key] as string}
+                        onChange={(e) => updateItem(item.id, col.key, e.target.value)}
+                        placeholder={col.placeholder}
+                        className="w-full px-2 py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-xs min-w-[100px]"
+                      />
+                    </td>
+                  ))}
+                  <td className="px-3 py-2 text-center">
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                      className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
