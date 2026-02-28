@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      student_submissions: {
+        Row: {
+          created_at: string
+          description_text: string | null
+          id: string
+          matched_keywords: number | null
+          multisensory_notes: string | null
+          score: number | null
+          student_name: string
+          table_data: Json
+          total_keywords: number | null
+        }
+        Insert: {
+          created_at?: string
+          description_text?: string | null
+          id?: string
+          matched_keywords?: number | null
+          multisensory_notes?: string | null
+          score?: number | null
+          student_name: string
+          table_data?: Json
+          total_keywords?: number | null
+        }
+        Update: {
+          created_at?: string
+          description_text?: string | null
+          id?: string
+          matched_keywords?: number | null
+          multisensory_notes?: string | null
+          score?: number | null
+          student_name?: string
+          table_data?: Json
+          total_keywords?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

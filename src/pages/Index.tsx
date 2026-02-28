@@ -1,103 +1,185 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronDown } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import StudentNameForm from "@/components/StudentNameForm";
+import MultisensoryCard from "@/components/MultisensoryCard";
 import DescriptionTable from "@/components/DescriptionTable";
 import MindMap from "@/components/MindMap";
 import TextEditor from "@/components/TextEditor";
+import ScoreDisplay from "@/components/ScoreDisplay";
 import { DescriptionItem } from "@/types/description";
+import { supabase } from "@/integrations/supabase/client";
+
+const EMPTY_ITEM = (): DescriptionItem => ({
+  id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", ukuran: "", rasa: "", manfaat: "",
+});
 
 const INITIAL_ITEMS: DescriptionItem[] = [
-  { id: "1", namaBarang: "Madu", deskripsi: "Cairan manis alami yang dihasilkan oleh lebah", khasiat: "Menyembuhkan batuk, meningkatkan daya tahan tubuh" },
-  { id: "2", namaBarang: "", deskripsi: "", khasiat: "" },
+  { id: "1", namaBarang: "Madu", warna: "Kuning keemasan", tekstur: "Kental, lengket", ukuran: "Botol kecil", rasa: "Sangat manis", manfaat: "Menyembuhkan batuk, meningkatkan daya tahan tubuh" },
+  EMPTY_ITEM(),
+];
+
+const FIELD_LABELS: { key: keyof DescriptionItem; label: string }[] = [
+  { key: "namaBarang", label: "Nama" },
+  { key: "warna", label: "Warna" },
+  { key: "tekstur", label: "Tekstur" },
+  { key: "ukuran", label: "Ukuran" },
+  { key: "rasa", label: "Rasa" },
+  { key: "manfaat", label: "Manfaat" },
 ];
 
 const Index = () => {
-  const [items, setItems] = useState<DescriptionItem[]>(INITIAL_ITEMS);
+  const [studentName, setStudentName] = useState("");
+  const [started, setStarted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [items, setItems] = useState<DescriptionItem[]>(INITIAL_ITEMS);
+  const [observations, setObservations] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [descText, setDescText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const filledItems = items.filter((i) => i.namaBarang.trim());
+
+  const keywords = useMemo(() => {
+    const kws: { word: string }[] = [];
+    const seen = new Set<string>();
+    filledItems.forEach((item) => {
+      FIELD_LABELS.forEach(({ key }) => {
+        const val = (item[key] as string)?.trim();
+        if (!val) return;
+        val.split(/[\s,.\-;:]+/).filter(w => w.length >= 3).forEach(w => {
+          const lower = w.toLowerCase();
+          if (!seen.has(lower)) { seen.add(lower); kws.push({ word: lower }); }
+        });
+      });
+    });
+    return kws;
+  }, [filledItems]);
+
+  const matchedCount = useMemo(() => {
+    if (!descText.trim()) return 0;
+    const lower = descText.toLowerCase();
+    return keywords.filter(k => lower.includes(k.word)).length;
+  }, [descText, keywords]);
+
+  const score = useMemo(() => {
+    if (keywords.length === 0) return 0;
+    return Math.round((matchedCount / keywords.length) * 100);
+  }, [matchedCount, keywords]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await supabase.from("student_submissions").insert([{
+        student_name: studentName,
+        table_data: items as any,
+        multisensory_notes: observations,
+        description_text: descText,
+        score,
+        total_keywords: keywords.length,
+        matched_keywords: matchedCount,
+      }]);
+      setSaved(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!started) {
+    return <StudentNameForm onSubmit={(name) => { setStudentName(name); setStarted(true); }} />;
+  }
 
   const steps = [
-    { icon: "📝", title: "Isi Tabel", desc: "Lengkapi deskripsi barang" },
-    { icon: "🧠", title: "Lihat Mind Map", desc: "Peta konsep otomatis" },
+    { icon: "👀", title: "Pengamatan", desc: "Amati dengan panca indera" },
+    { icon: "📝", title: "Isi Tabel", desc: "Lengkapi data barang" },
+    { icon: "🧠", title: "Mind Map", desc: "Peta konsep otomatis" },
     { icon: "✍️", title: "Tulis Teks", desc: "Buat teks deskripsi" },
+    { icon: "🎯", title: "Skor", desc: "Lihat nilaimu" },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <header className="relative overflow-hidden bg-gradient-fun py-12 px-4">
+      <header className="relative overflow-hidden bg-gradient-fun py-8 px-4">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-4 left-10 text-6xl animate-bounce-gentle">📚</div>
           <div className="absolute top-8 right-20 text-5xl animate-bounce-gentle" style={{ animationDelay: "0.5s" }}>✏️</div>
-          <div className="absolute bottom-4 left-1/3 text-4xl animate-bounce-gentle" style={{ animationDelay: "1s" }}>🌟</div>
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-3 mb-4"
-          >
-            <BookOpen className="w-10 h-10 text-primary-foreground" />
-            <h1 className="text-3xl md:text-4xl font-heading font-extrabold text-primary-foreground">
-              Belajar Teks Deskripsi
-            </h1>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-3 mb-2">
+            <BookOpen className="w-8 h-8 text-primary-foreground" />
+            <h1 className="text-2xl md:text-3xl font-heading font-extrabold text-primary-foreground">Belajar Teks Deskripsi</h1>
           </motion.div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-primary-foreground/90 font-body text-lg max-w-xl mx-auto"
-          >
-            Isi tabel → Lihat mind map → Tulis teks deskripsi yang lengkap! 🚀
-          </motion.p>
+          <p className="text-primary-foreground/80 font-body">Halo, <span className="font-bold">{studentName}</span>! Ayo mulai belajar! 🚀</p>
         </div>
       </header>
 
-      {/* Steps indicator */}
-      <div className="max-w-4xl mx-auto px-4 -mt-6 relative z-20">
-        <div className="flex gap-3 justify-center">
+      {/* Steps */}
+      <div className="max-w-5xl mx-auto px-4 -mt-5 relative z-20">
+        <div className="flex gap-2 justify-center flex-wrap">
           {steps.map((step, i) => (
             <button
               key={i}
               onClick={() => setActiveStep(i)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-heading font-bold text-sm transition-all shadow-card-fun ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-heading font-bold text-xs transition-all shadow-card-fun ${
                 activeStep === i
                   ? "bg-card text-foreground scale-105 border-2 border-primary"
                   : "bg-card/80 text-muted-foreground border border-border hover:bg-card"
               }`}
             >
-              <span className="text-lg">{step.icon}</span>
+              <span className="text-base">{step.icon}</span>
               <span className="hidden sm:inline">{step.title}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Content */}
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {activeStep === 0 && <DescriptionTable items={items} onItemsChange={setItems} />}
-        {activeStep === 1 && <MindMap items={items} />}
-        {activeStep === 2 && <TextEditor items={items} />}
+      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {activeStep === 0 && (
+          <MultisensoryCard
+            observations={observations}
+            onObservationsChange={setObservations}
+            imageUrl={imageUrl}
+            onImageUrlChange={setImageUrl}
+          />
+        )}
+        {activeStep === 1 && <DescriptionTable items={items} onItemsChange={setItems} />}
+        {activeStep === 2 && <MindMap items={items} />}
+        {activeStep === 3 && <TextEditor items={items} text={descText} onTextChange={setDescText} />}
+        {activeStep === 4 && (
+          <ScoreDisplay
+            score={score}
+            totalKeywords={keywords.length}
+            matchedKeywords={matchedCount}
+            studentName={studentName}
+            onSave={handleSave}
+            saving={saving}
+            saved={saved}
+          />
+        )}
 
-        {/* Navigation hint */}
-        {activeStep < 2 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
+        {/* Navigation */}
+        {activeStep < 4 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
             <button
               onClick={() => setActiveStep((s) => s + 1)}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-heading font-bold hover:opacity-90 transition-opacity shadow-fun"
             >
               Lanjut ke {steps[activeStep + 1].title}
-              <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </motion.div>
         )}
       </main>
 
-      <footer className="text-center py-6 text-muted-foreground text-xs font-body">
-        🎓 Alat Belajar Teks Deskripsi untuk Siswa SD
+      <footer className="text-center py-6 space-y-2">
+        <Link to="/hasil" className="text-primary font-heading font-bold text-sm hover:underline">
+          📊 Lihat Semua Hasil Siswa
+        </Link>
+        <p className="text-muted-foreground text-xs font-body">🎓 Alat Belajar Teks Deskripsi untuk Siswa SD</p>
       </footer>
     </div>
   );
