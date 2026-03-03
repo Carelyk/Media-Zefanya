@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ClipboardList, ArrowLeft } from "lucide-react";
+import { ClipboardList, ArrowLeft, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
@@ -16,19 +16,80 @@ interface Submission {
 
 const Results = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetch = async () => {
-      const { data, error } = await supabase
-        .from("student_submissions")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (!error && data) setSubmissions(data as Submission[]);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("verify-teacher", {
+        body: { password },
+      });
+
+      if (fnError || !data?.submissions) {
+        setError("Password salah. Silakan coba lagi.");
+        setLoading(false);
+        return;
+      }
+
+      setSubmissions(data.submissions as Submission[]);
+      setAuthenticated(true);
+    } catch {
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
       setLoading(false);
-    };
-    fetch();
-  }, []);
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-sm"
+        >
+          <div className="rounded-2xl bg-card shadow-card-fun border border-border p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-xl font-heading font-extrabold text-foreground mb-2">
+              🔒 Halaman Guru
+            </h1>
+            <p className="text-sm text-muted-foreground font-body mb-6">
+              Masukkan password untuk melihat hasil siswa
+            </p>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password guru..."
+                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground font-body text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                autoFocus
+              />
+              {error && <p className="text-sm text-destructive font-body">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading || !password}
+                className="w-full px-4 py-3 rounded-xl bg-primary text-primary-foreground font-heading font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {loading ? "Memverifikasi..." : "Masuk"}
+              </button>
+            </form>
+            <Link to="/" className="inline-block mt-4 text-sm text-muted-foreground hover:text-primary font-body">
+              ← Kembali ke halaman utama
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,9 +108,7 @@ const Results = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {loading ? (
-          <p className="text-center text-muted-foreground font-heading">Memuat data...</p>
-        ) : submissions.length === 0 ? (
+        {submissions.length === 0 ? (
           <p className="text-center text-muted-foreground font-heading py-8">Belum ada jawaban siswa. 📭</p>
         ) : (
           <div className="space-y-4">
