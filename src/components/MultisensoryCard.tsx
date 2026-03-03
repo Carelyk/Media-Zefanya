@@ -1,43 +1,44 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, Upload, ImageIcon, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Eye } from "lucide-react";
 
-interface Props {
-  observations: string;
-  onObservationsChange: (text: string) => void;
-  imageUrl: string;
-  onImageUrlChange: (url: string) => void;
+import maduImg from "@/assets/madu.jpeg";
+import loncengImg from "@/assets/lonceng.jpeg";
+import berasImg from "@/assets/beras.jpeg";
+import kopiImg from "@/assets/kopi.jpeg";
+import garamImg from "@/assets/garam.jpeg";
+import tehImg from "@/assets/teh.jpeg";
+import amplasImg from "@/assets/amplas.jpeg";
+import kapasImg from "@/assets/kapas.jpeg";
+import karetImg from "@/assets/karet.jpeg";
+
+export interface ItemCard {
+  id: string;
+  name: string;
+  image: string;
+  studentLabel: string;
 }
 
-const SAMPLE_IMAGES = [
-  { name: "Madu 🍯", url: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&h=300&fit=crop" },
-  { name: "Apel 🍎", url: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=300&fit=crop" },
-  { name: "Batu 🪨", url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=300&fit=crop" },
+const PRESET_ITEMS: Omit<ItemCard, "studentLabel">[] = [
+  { id: "madu", name: "Madu", image: maduImg },
+  { id: "lonceng", name: "Lonceng", image: loncengImg },
+  { id: "beras", name: "Beras", image: berasImg },
+  { id: "kopi", name: "Kopi", image: kopiImg },
+  { id: "garam", name: "Garam", image: garamImg },
+  { id: "teh", name: "Teh", image: tehImg },
+  { id: "amplas", name: "Amplas", image: amplasImg },
+  { id: "kapas", name: "Kapas", image: kapasImg },
+  { id: "karet", name: "Karet", image: karetImg },
 ];
 
-const MultisensoryCard = ({ observations, onObservationsChange, imageUrl, onImageUrlChange }: Props) => {
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+interface Props {
+  selectedItemId: string;
+  onSelectItem: (id: string) => void;
+  itemLabels: Record<string, string>;
+  onLabelChange: (id: string, label: string) => void;
+}
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop();
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("item-photos").upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from("item-photos").getPublicUrl(path);
-      onImageUrlChange(data.publicUrl);
-    } catch (err) {
-      console.error("Upload error:", err);
-    } finally {
-      setUploading(false);
-    }
-  };
-
+const MultisensoryCard = ({ selectedItemId, onSelectItem, itemLabels, onLabelChange }: Props) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -51,72 +52,43 @@ const MultisensoryCard = ({ observations, onObservationsChange, imageUrl, onImag
         </h2>
       </div>
 
-      <div className="p-6 space-y-5">
+      <div className="p-6 space-y-4">
         <p className="font-body text-muted-foreground text-sm">
-          Amati barang dengan panca indera. Lihat, raba, cium, dan rasakan! Tulis apa yang kamu temukan. 🔍
+          Amati setiap barang dengan panca indera. Tuliskan nama barang di bawah gambar, lalu pilih salah satu untuk dideskripsikan! 🔍
         </p>
 
-        {/* Image section */}
-        <div className="space-y-3">
-          <p className="font-heading font-bold text-sm text-foreground">📸 Pilih atau upload foto barang:</p>
-          
-          {/* Sample images */}
-          <div className="flex flex-wrap gap-3">
-            {SAMPLE_IMAGES.map((img) => (
-              <button
-                key={img.name}
-                onClick={() => onImageUrlChange(img.url)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
-                  imageUrl === img.url ? "border-primary bg-primary/10" : "border-border hover:border-primary/50"
-                }`}
-              >
-                <img src={img.url} alt={img.name} className="w-20 h-16 object-cover rounded-lg" />
-                <span className="text-xs font-heading font-bold">{img.name}</span>
-              </button>
-            ))}
-            
-            {/* Upload button */}
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl border-2 border-dashed border-border hover:border-primary/50 w-[96px] h-[80px] transition-all"
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
+          {PRESET_ITEMS.map((item, idx) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                selectedItemId === item.id
+                  ? "border-primary bg-primary/10 shadow-fun"
+                  : "border-border hover:border-primary/50"
+              }`}
+              onClick={() => onSelectItem(item.id)}
             >
-              <Upload className="w-6 h-6 text-muted-foreground" />
-              <span className="text-xs font-heading text-muted-foreground">
-                {uploading ? "..." : "Upload"}
-              </span>
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-          </div>
-
-          {/* Selected image preview */}
-          {imageUrl && (
-            <div className="relative inline-block">
-              <img src={imageUrl} alt="Barang" className="w-full max-w-sm rounded-xl border border-border shadow-card-fun" />
-              <button
-                onClick={() => onImageUrlChange("")}
-                className="absolute top-2 right-2 p-1 rounded-full bg-destructive text-destructive-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full aspect-square object-cover rounded-lg"
+              />
+              <input
+                type="text"
+                value={itemLabels[item.id] || ""}
+                onChange={(e) => onLabelChange(item.id, e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="Nama barang..."
+                className="w-full px-2 py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-xs text-center"
+              />
+            </motion.div>
+          ))}
         </div>
 
-        {/* Observations */}
-        <div>
-          <label className="block font-heading font-bold text-sm text-foreground mb-2">
-            ✏️ Tulis hasil pengamatanmu:
-          </label>
-          <textarea
-            value={observations}
-            onChange={(e) => onObservationsChange(e.target.value)}
-            placeholder="Contoh: Barang ini berwarna kuning keemasan, teksturnya lengket dan kental, baunya manis, rasanya sangat manis..."
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary font-body text-sm leading-relaxed resize-none"
-          />
-        </div>
-
-        {observations.trim() && (
+        {selectedItemId && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -124,7 +96,7 @@ const MultisensoryCard = ({ observations, onObservationsChange, imageUrl, onImag
           >
             <span className="text-lg">✅</span>
             <p className="font-heading font-bold text-sm text-foreground">
-              Bagus! Sekarang lanjut ke tabel untuk menulis lebih detail!
+              Bagus! Kamu memilih barang untuk dideskripsikan. Lanjut ke tabel!
             </p>
           </motion.div>
         )}
@@ -133,4 +105,5 @@ const MultisensoryCard = ({ observations, onObservationsChange, imageUrl, onImag
   );
 };
 
+export { PRESET_ITEMS };
 export default MultisensoryCard;

@@ -7,13 +7,13 @@ interface Props {
   onItemsChange: (items: DescriptionItem[]) => void;
 }
 
-const COLUMNS: { key: keyof DescriptionItem; label: string; placeholder: string }[] = [
-  { key: "namaBarang", label: "Nama Barang", placeholder: "Contoh: Madu" },
-  { key: "warna", label: "Warna", placeholder: "Kuning keemasan" },
-  { key: "tekstur", label: "Tekstur", placeholder: "Kental, lengket" },
-  { key: "ukuran", label: "Ukuran", placeholder: "Kecil/sedang/besar" },
-  { key: "rasa", label: "Rasa", placeholder: "Manis" },
-  { key: "manfaat", label: "Manfaat / Kegunaan", placeholder: "Menyembuhkan batuk..." },
+const COLUMNS: { key: keyof DescriptionItem; label: string }[] = [
+  { key: "namaBarang", label: "Nama Barang" },
+  { key: "warna", label: "Warna" },
+  { key: "tekstur", label: "Tekstur" },
+  { key: "ukuran", label: "Ukuran" },
+  { key: "rasa", label: "Rasa" },
+  { key: "manfaat", label: "Manfaat / Kegunaan" },
 ];
 
 const DescriptionTable = ({ items, onItemsChange }: Props) => {
@@ -43,6 +43,12 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
         <h2 className="text-xl font-heading font-bold text-primary-foreground">
           📝 Tabel Deskripsi Barang
         </h2>
+      </div>
+
+      <div className="p-4">
+        <p className="font-body text-muted-foreground text-sm mb-4">
+          Isilah tabel di bawah ini berdasarkan pengamatan yang sudah kamu lakukan terhadap barang yang kamu pilih. Kosongkan jika tidak ada.
+        </p>
       </div>
 
       <div className="overflow-x-auto">
@@ -76,7 +82,6 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
                         type="text"
                         value={item[col.key] as string}
                         onChange={(e) => updateItem(item.id, col.key, e.target.value)}
-                        placeholder={col.placeholder}
                         className="w-full px-2 py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-xs min-w-[100px]"
                       />
                     </td>
@@ -104,6 +109,14 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
           <Plus className="w-4 h-4" />
           Tambah Barang
         </button>
+      </div>
+
+      <div className="px-4 pb-4">
+        <div className="px-4 py-3 rounded-xl bg-muted/50 border border-border">
+          <p className="font-heading font-bold text-sm text-foreground">
+            📌 Contoh: Setelah mengisi tabel, isilah jawaban di setiap kotak cabang mind map dan tuliskan nama benda yang kamu pilih di tengah cabang.
+          </p>
+        </div>
       </div>
     </motion.div>
   );
