@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronDown, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import StudentNameForm from "@/components/StudentNameForm";
 import MultisensoryCard from "@/components/MultisensoryCard";
@@ -15,59 +15,36 @@ const EMPTY_ITEM = (): DescriptionItem => ({
   id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", ukuran: "", rasa: "", manfaat: "",
 });
 
-const INITIAL_ITEMS: DescriptionItem[] = [
-  { id: "1", namaBarang: "Madu", warna: "Kuning keemasan", tekstur: "Kental, lengket", ukuran: "Botol kecil", rasa: "Sangat manis", manfaat: "Menyembuhkan batuk, meningkatkan daya tahan tubuh" },
-  EMPTY_ITEM(),
-];
-
-const FIELD_LABELS: { key: keyof DescriptionItem; label: string }[] = [
-  { key: "namaBarang", label: "Nama" },
-  { key: "warna", label: "Warna" },
-  { key: "tekstur", label: "Tekstur" },
-  { key: "ukuran", label: "Ukuran" },
-  { key: "rasa", label: "Rasa" },
-  { key: "manfaat", label: "Manfaat" },
-];
-
 const Index = () => {
   const [studentName, setStudentName] = useState("");
   const [started, setStarted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [items, setItems] = useState<DescriptionItem[]>(INITIAL_ITEMS);
-  const [observations, setObservations] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+
+  // Multisensory state
+  const [selectedItemId, setSelectedItemId] = useState("");
+  const [itemLabels, setItemLabels] = useState<Record<string, string>>({});
+
+  // Table state
+  const [items, setItems] = useState<DescriptionItem[]>([EMPTY_ITEM()]);
+
+  // Mind map state
+  const [mindMapCenter, setMindMapCenter] = useState("");
+  const [mindMapBranches, setMindMapBranches] = useState<Record<string, string>>({});
+
+  // Text & essay state
   const [descText, setDescText] = useState("");
+  const [essayText, setEssayText] = useState("");
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const filledItems = items.filter((i) => i.namaBarang.trim());
+  const handleBranchChange = (key: string, val: string) => {
+    setMindMapBranches((prev) => ({ ...prev, [key]: val }));
+  };
 
-  const keywords = useMemo(() => {
-    const kws: { word: string }[] = [];
-    const seen = new Set<string>();
-    filledItems.forEach((item) => {
-      FIELD_LABELS.forEach(({ key }) => {
-        const val = (item[key] as string)?.trim();
-        if (!val) return;
-        val.split(/[\s,.\-;:]+/).filter(w => w.length >= 3).forEach(w => {
-          const lower = w.toLowerCase();
-          if (!seen.has(lower)) { seen.add(lower); kws.push({ word: lower }); }
-        });
-      });
-    });
-    return kws;
-  }, [filledItems]);
-
-  const matchedCount = useMemo(() => {
-    if (!descText.trim()) return 0;
-    const lower = descText.toLowerCase();
-    return keywords.filter(k => lower.includes(k.word)).length;
-  }, [descText, keywords]);
-
-  const score = useMemo(() => {
-    if (keywords.length === 0) return 0;
-    return Math.round((matchedCount / keywords.length) * 100);
-  }, [matchedCount, keywords]);
+  const handleLabelChange = (id: string, label: string) => {
+    setItemLabels((prev) => ({ ...prev, [id]: label }));
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -75,11 +52,11 @@ const Index = () => {
       await supabase.from("student_submissions").insert([{
         student_name: studentName,
         table_data: items as any,
-        multisensory_notes: observations,
+        multisensory_notes: JSON.stringify({ selectedItemId, itemLabels, mindMapCenter, mindMapBranches, essayText }),
         description_text: descText,
-        score,
-        total_keywords: keywords.length,
-        matched_keywords: matchedCount,
+        score: 0,
+        total_keywords: 0,
+        matched_keywords: 0,
       }]);
       setSaved(true);
     } catch (err) {
@@ -96,9 +73,9 @@ const Index = () => {
   const steps = [
     { icon: "👀", title: "Pengamatan", desc: "Amati dengan panca indera" },
     { icon: "📝", title: "Isi Tabel", desc: "Lengkapi data barang" },
-    { icon: "🧠", title: "Mind Map", desc: "Peta konsep otomatis" },
+    { icon: "🧠", title: "Mind Map", desc: "Isi cabang mind map" },
     { icon: "✍️", title: "Tulis Teks", desc: "Buat teks deskripsi" },
-    { icon: "🎯", title: "Skor", desc: "Lihat nilaimu" },
+    { icon: "🎯", title: "Hasil", desc: "Simpan jawabanmu" },
   ];
 
   return (
@@ -140,21 +117,27 @@ const Index = () => {
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {activeStep === 0 && (
           <MultisensoryCard
-            observations={observations}
-            onObservationsChange={setObservations}
-            imageUrl={imageUrl}
-            onImageUrlChange={setImageUrl}
+            selectedItemId={selectedItemId}
+            onSelectItem={setSelectedItemId}
+            itemLabels={itemLabels}
+            onLabelChange={handleLabelChange}
           />
         )}
         {activeStep === 1 && <DescriptionTable items={items} onItemsChange={setItems} />}
-        {activeStep === 2 && <MindMap items={items} />}
-        {activeStep === 3 && <TextEditor items={items} text={descText} onTextChange={setDescText} />}
+        {activeStep === 2 && (
+          <MindMap
+            centerLabel={mindMapCenter}
+            onCenterLabelChange={setMindMapCenter}
+            branches={mindMapBranches}
+            onBranchChange={handleBranchChange}
+          />
+        )}
+        {activeStep === 3 && <TextEditor text={descText} onTextChange={setDescText} />}
         {activeStep === 4 && (
           <ScoreDisplay
-            score={score}
-            totalKeywords={keywords.length}
-            matchedKeywords={matchedCount}
             studentName={studentName}
+            essayText={essayText}
+            onEssayChange={setEssayText}
             onSave={handleSave}
             saving={saving}
             saved={saved}

@@ -1,46 +1,22 @@
 import { motion } from "framer-motion";
 import { Brain } from "lucide-react";
-import { DescriptionItem } from "@/types/description";
 
 interface Props {
-  items: DescriptionItem[];
+  centerLabel: string;
+  onCenterLabelChange: (val: string) => void;
+  branches: Record<string, string>;
+  onBranchChange: (key: string, val: string) => void;
 }
 
-const BRANCH_COLORS = [
-  "bg-primary text-primary-foreground",
-  "bg-secondary text-secondary-foreground",
-  "bg-accent text-accent-foreground",
-  "bg-fun-pink text-primary-foreground",
-  "bg-fun-orange text-primary-foreground",
-  "bg-fun-cyan text-primary-foreground",
+const BRANCH_CONFIG = [
+  { key: "warna", label: "🎨 Warna", position: "top" },
+  { key: "tekstur", label: "🤚 Tekstur", position: "right" },
+  { key: "ukuran", label: "📏 Ukuran", position: "bottom" },
+  { key: "rasa", label: "👅 Rasa", position: "left" },
+  { key: "manfaat", label: "💡 Manfaat", position: "top-right" },
 ];
 
-const FIELD_LABELS: { key: keyof DescriptionItem; label: string; emoji: string }[] = [
-  { key: "warna", label: "Warna", emoji: "🎨" },
-  { key: "tekstur", label: "Tekstur", emoji: "🤚" },
-  { key: "ukuran", label: "Ukuran", emoji: "📏" },
-  { key: "rasa", label: "Rasa", emoji: "👅" },
-  { key: "manfaat", label: "Manfaat", emoji: "💡" },
-];
-
-const MindMap = ({ items }: Props) => {
-  const filledItems = items.filter((i) => i.namaBarang.trim());
-
-  if (filledItems.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="rounded-2xl bg-card shadow-card-fun border border-border p-8 text-center"
-      >
-        <Brain className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-        <p className="text-muted-foreground font-heading font-semibold">
-          Isi tabel dulu ya! Mind map akan muncul di sini 🌟
-        </p>
-      </motion.div>
-    );
-  }
-
+const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }: Props) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -54,61 +30,110 @@ const MindMap = ({ items }: Props) => {
         </h2>
       </div>
 
-      <div className="p-6 flex justify-center">
-        <div className="inline-flex flex-col items-center gap-6 w-full">
-          {/* Center node */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 200 }}
-            className="px-6 py-3 rounded-2xl bg-gradient-fun text-primary-foreground font-heading font-extrabold text-lg shadow-fun"
-          >
-            📋 Deskripsi Barang
+      <div className="p-6">
+        <p className="font-body text-muted-foreground text-sm mb-6">
+          Tuliskan nama benda yang kamu pilih di tengah, lalu isi setiap cabang berdasarkan tabel yang sudah kamu isi.
+        </p>
+
+        <div className="flex flex-col items-center gap-4">
+          {/* Top branch */}
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="flex flex-col items-center gap-1">
+            <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
+              {BRANCH_CONFIG[0].label}
+            </div>
+            <input
+              type="text"
+              value={branches[BRANCH_CONFIG[0].key] || ""}
+              onChange={(e) => onBranchChange(BRANCH_CONFIG[0].key, e.target.value)}
+              className="w-40 px-3 py-2 rounded-xl border-2 border-input bg-background text-foreground text-center font-body text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <div className="w-0.5 h-6 bg-border" />
           </motion.div>
 
-          {/* Branches */}
-          <div className="flex flex-wrap justify-center gap-6 w-full">
-            {filledItems.map((item, idx) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.15, type: "spring" }}
-                className="flex flex-col items-center gap-3 min-w-[220px] max-w-[300px]"
-              >
-                <div className="w-0.5 h-4 bg-border" />
+          {/* Middle row: left - center - right */}
+          <div className="flex items-center gap-3 w-full justify-center">
+            {/* Left branch */}
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+              className="flex flex-col items-center gap-1">
+              <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
+                {BRANCH_CONFIG[3].label}
+              </div>
+              <input
+                type="text"
+                value={branches[BRANCH_CONFIG[3].key] || ""}
+                onChange={(e) => onBranchChange(BRANCH_CONFIG[3].key, e.target.value)}
+                className="w-32 px-3 py-2 rounded-xl border-2 border-input bg-background text-foreground text-center font-body text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </motion.div>
 
-                {/* Item name node */}
-                <div className={`px-5 py-2.5 rounded-2xl font-heading font-bold text-sm shadow-card-fun ${BRANCH_COLORS[idx % BRANCH_COLORS.length]}`}>
-                  {item.namaBarang}
-                </div>
+            <div className="h-0.5 w-6 bg-border" />
 
-                {/* Sub-branches for each field */}
-                <div className="grid grid-cols-2 gap-2 w-full">
-                  {FIELD_LABELS.map((field, fi) => {
-                    const value = (item[field.key] as string)?.trim();
-                    if (!value) return null;
-                    return (
-                      <motion.div
-                        key={field.key}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.15 + fi * 0.08 }}
-                        className="flex flex-col items-center gap-1"
-                      >
-                        <div className="w-0.5 h-2 bg-border" />
-                        <div className="w-full px-2 py-1.5 rounded-xl bg-muted text-foreground text-[11px] font-body text-center border border-border">
-                          <span className="font-heading font-bold block text-primary text-[10px]">
-                            {field.emoji} {field.label}
-                          </span>
-                          {value}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+            {/* Center node */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="flex flex-col items-center"
+            >
+              <input
+                type="text"
+                value={centerLabel}
+                onChange={(e) => onCenterLabelChange(e.target.value)}
+                placeholder="Nama benda..."
+                className="w-36 px-4 py-3 rounded-2xl bg-gradient-fun text-primary-foreground font-heading font-extrabold text-sm text-center shadow-fun placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </motion.div>
+
+            <div className="h-0.5 w-6 bg-border" />
+
+            {/* Right branch */}
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+              className="flex flex-col items-center gap-1">
+              <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
+                {BRANCH_CONFIG[1].label}
+              </div>
+              <input
+                type="text"
+                value={branches[BRANCH_CONFIG[1].key] || ""}
+                onChange={(e) => onBranchChange(BRANCH_CONFIG[1].key, e.target.value)}
+                className="w-32 px-3 py-2 rounded-xl border-2 border-input bg-background text-foreground text-center font-body text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </motion.div>
+          </div>
+
+          {/* Bottom branches */}
+          <div className="flex flex-col items-center gap-1">
+            <div className="w-0.5 h-6 bg-border" />
+            <div className="flex gap-6">
+              {/* Bottom branch */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                className="flex flex-col items-center gap-1">
+                <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
+                  {BRANCH_CONFIG[2].label}
                 </div>
+                <input
+                  type="text"
+                  value={branches[BRANCH_CONFIG[2].key] || ""}
+                  onChange={(e) => onBranchChange(BRANCH_CONFIG[2].key, e.target.value)}
+                  className="w-32 px-3 py-2 rounded-xl border-2 border-input bg-background text-foreground text-center font-body text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                />
               </motion.div>
-            ))}
+
+              {/* Manfaat branch */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                className="flex flex-col items-center gap-1">
+                <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
+                  {BRANCH_CONFIG[4].label}
+                </div>
+                <input
+                  type="text"
+                  value={branches[BRANCH_CONFIG[4].key] || ""}
+                  onChange={(e) => onBranchChange(BRANCH_CONFIG[4].key, e.target.value)}
+                  className="w-32 px-3 py-2 rounded-xl border-2 border-input bg-background text-foreground text-center font-body text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
