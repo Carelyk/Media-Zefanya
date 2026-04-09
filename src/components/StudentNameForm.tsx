@@ -35,7 +35,7 @@ const StudentNameForm = ({ onSubmit }: Props) => {
               Belajar Teks Deskripsi
             </h1>
             <p className="text-primary-foreground/80 font-body mt-2">
-              Untuk Siswa SD Kelas 3-6
+              Untuk Siswa SD Kelas 3
             </p>
           </div>
 
