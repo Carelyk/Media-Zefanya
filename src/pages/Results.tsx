@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ClipboardList, ArrowLeft, Lock } from "lucide-react";
+import { ClipboardList, ArrowLeft, Lock, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 interface Submission {
   id: string;
   student_name: string;
-  score: number;
-  total_keywords: number;
-  matched_keywords: number;
-  description_text: string;
+  score: number | null;
+  total_keywords: number | null;
+  matched_keywords: number | null;
+  description_text: string | null;
+  multisensory_notes: string | null;
+  table_data: any;
   created_at: string;
 }
 
@@ -20,6 +22,7 @@ const Results = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +46,15 @@ const Results = () => {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const parseNotes = (notes: string | null) => {
+    if (!notes) return null;
+    try {
+      return JSON.parse(notes);
+    } catch {
+      return null;
     }
   };
 
@@ -112,32 +124,105 @@ const Results = () => {
           <p className="text-center text-muted-foreground font-heading py-8">Belum ada jawaban siswa. 📭</p>
         ) : (
           <div className="space-y-4">
-            {submissions.map((sub, i) => (
-              <motion.div
-                key={sub.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="rounded-xl bg-card shadow-card-fun border border-border p-4"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-heading font-bold text-foreground">{sub.student_name}</h3>
-                  <span className={`px-3 py-1 rounded-full font-heading font-bold text-sm ${
-                    sub.score >= 70 ? "bg-accent/20 text-accent" : sub.score >= 50 ? "bg-warning/20 text-warning" : "bg-destructive/20 text-destructive"
-                  }`}>
-                    Skor: {sub.score}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground font-body mb-2">
-                  {new Date(sub.created_at).toLocaleString("id-ID")} · Kata kunci: {sub.matched_keywords}/{sub.total_keywords}
-                </p>
-                {sub.description_text && (
-                  <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg line-clamp-3">
-                    {sub.description_text}
-                  </p>
-                )}
-              </motion.div>
-            ))}
+            <p className="text-sm text-muted-foreground font-body">Total: {submissions.length} jawaban</p>
+            {submissions.map((sub, i) => {
+              const notes = parseNotes(sub.multisensory_notes);
+              const isExpanded = expandedId === sub.id;
+              return (
+                <motion.div
+                  key={sub.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="rounded-xl bg-card shadow-card-fun border border-border overflow-hidden"
+                >
+                  <button
+                    onClick={() => setExpandedId(isExpanded ? null : sub.id)}
+                    className="w-full p-4 flex items-center justify-between text-left"
+                  >
+                    <div>
+                      <h3 className="font-heading font-bold text-foreground">{sub.student_name}</h3>
+                      <p className="text-xs text-muted-foreground font-body">
+                        {new Date(sub.created_at).toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isExpanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
+                      {/* Description text */}
+                      {sub.description_text && (
+                        <div>
+                          <p className="font-heading font-bold text-xs text-muted-foreground mb-1">📝 Teks Deskripsi:</p>
+                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
+                            {sub.description_text}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Essay */}
+                      {notes?.essayText && (
+                        <div>
+                          <p className="font-heading font-bold text-xs text-muted-foreground mb-1">✏️ Essai:</p>
+                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
+                            {notes.essayText}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Mind map data */}
+                      {notes?.mindMapCenter && (
+                        <div>
+                          <p className="font-heading font-bold text-xs text-muted-foreground mb-1">🧠 Mind Map:</p>
+                          <div className="bg-muted/50 p-3 rounded-lg text-sm font-body">
+                            <p><span className="font-bold">Pusat:</span> {notes.mindMapCenter}</p>
+                            {notes.mindMapBranches && Object.entries(notes.mindMapBranches).map(([key, val]) => (
+                              val ? <p key={key}><span className="font-bold capitalize">{key}:</span> {val as string}</p> : null
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Table data */}
+                      {Array.isArray(sub.table_data) && sub.table_data.length > 0 && (
+                        <div>
+                          <p className="font-heading font-bold text-xs text-muted-foreground mb-1">📋 Data Tabel:</p>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs font-body">
+                              <thead>
+                                <tr className="bg-muted">
+                                  <th className="px-2 py-1 text-left">Nama</th>
+                                  <th className="px-2 py-1 text-left">Warna</th>
+                                  <th className="px-2 py-1 text-left">Tekstur</th>
+                                  <th className="px-2 py-1 text-left">Ukuran</th>
+                                  <th className="px-2 py-1 text-left">Rasa</th>
+                                  <th className="px-2 py-1 text-left">Manfaat</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(sub.table_data as any[]).map((row: any, ri: number) => (
+                                  <tr key={ri} className="border-t border-border">
+                                    <td className="px-2 py-1">{row.namaBarang}</td>
+                                    <td className="px-2 py-1">{row.warna}</td>
+                                    <td className="px-2 py-1">{row.tekstur}</td>
+                                    <td className="px-2 py-1">{row.ukuran}</td>
+                                    <td className="px-2 py-1">{row.rasa}</td>
+                                    <td className="px-2 py-1">{row.manfaat}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </main>

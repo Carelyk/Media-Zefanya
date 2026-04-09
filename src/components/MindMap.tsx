@@ -6,6 +6,7 @@ interface Props {
   onCenterLabelChange: (val: string) => void;
   branches: Record<string, string>;
   onBranchChange: (key: string, val: string) => void;
+  readOnlyCenter?: boolean;
 }
 
 const BRANCH_CONFIG = [
@@ -16,7 +17,7 @@ const BRANCH_CONFIG = [
   { key: "manfaat", label: "💡 Manfaat", position: "top-right" },
 ];
 
-const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }: Props) => {
+const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange, readOnlyCenter }: Props) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -32,7 +33,9 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
 
       <div className="p-6">
         <p className="font-body text-muted-foreground text-sm mb-6">
-          Tuliskan nama benda yang kamu pilih di tengah, lalu isi setiap cabang berdasarkan tabel yang sudah kamu isi.
+          {readOnlyCenter
+            ? "Nama benda sudah terisi otomatis dari pilihanmu. Isi setiap cabang berdasarkan tabel yang sudah kamu isi."
+            : "Tuliskan nama benda yang kamu pilih di tengah, lalu isi setiap cabang berdasarkan tabel yang sudah kamu isi."}
         </p>
 
         <div className="flex flex-col items-center gap-4">
@@ -53,7 +56,6 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
 
           {/* Middle row: left - center - right */}
           <div className="flex items-center gap-3 w-full justify-center">
-            {/* Left branch */}
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
               className="flex flex-col items-center gap-1">
               <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
@@ -81,13 +83,13 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
                 value={centerLabel}
                 onChange={(e) => onCenterLabelChange(e.target.value)}
                 placeholder="Nama benda..."
-                className="w-36 px-4 py-3 rounded-2xl bg-gradient-fun text-primary-foreground font-heading font-extrabold text-sm text-center shadow-fun placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+                readOnly={readOnlyCenter}
+                className={`w-36 px-4 py-3 rounded-2xl bg-gradient-fun text-primary-foreground font-heading font-extrabold text-sm text-center shadow-fun placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring ${readOnlyCenter ? "cursor-default opacity-90" : ""}`}
               />
             </motion.div>
 
             <div className="h-0.5 w-6 bg-border" />
 
-            {/* Right branch */}
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
               className="flex flex-col items-center gap-1">
               <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
@@ -106,7 +108,6 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
           <div className="flex flex-col items-center gap-1">
             <div className="w-0.5 h-6 bg-border" />
             <div className="flex gap-6">
-              {/* Bottom branch */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
                 className="flex flex-col items-center gap-1">
                 <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
@@ -120,7 +121,6 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
                 />
               </motion.div>
 
-              {/* Manfaat branch */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
                 className="flex flex-col items-center gap-1">
                 <div className="px-3 py-1 rounded-full bg-primary/10 text-primary font-heading font-bold text-xs">
@@ -141,4 +141,5 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange }:
   );
 };
 
+export { BRANCH_CONFIG };
 export default MindMap;
