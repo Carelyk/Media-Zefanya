@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, ChevronLeft } from "lucide-react";
+import { BookOpen, ChevronRight, ChevronLeft, Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import StudentNameForm from "@/components/StudentNameForm";
@@ -121,6 +121,26 @@ const Index = () => {
     }
   };
 
+  // Sync table → mind map branches whenever table items change
+  const syncTableToMindMap = (updatedItems: DescriptionItem[]) => {
+    if (updatedItems.length > 0) {
+      const first = updatedItems[0];
+      setMindMapBranches((prev) => ({
+        ...prev,
+        warna: first.warna || prev.warna || "",
+        tekstur: first.tekstur || prev.tekstur || "",
+        ukuran: first.ukuran || prev.ukuran || "",
+        rasa: first.rasa || prev.rasa || "",
+        manfaat: first.manfaat || prev.manfaat || "",
+      }));
+    }
+  };
+
+  const handleItemsChange = (newItems: DescriptionItem[]) => {
+    setItems(newItems);
+    syncTableToMindMap(newItems);
+  };
+
   const handleBranchChange = (key: string, val: string) => {
     setMindMapBranches((prev) => ({ ...prev, [key]: val }));
   };
@@ -192,12 +212,21 @@ const Index = () => {
           <div className="absolute top-4 left-10 text-6xl animate-bounce-gentle">📚</div>
           <div className="absolute top-8 right-20 text-5xl animate-bounce-gentle" style={{ animationDelay: "0.5s" }}>✏️</div>
         </div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-3 mb-2">
-            <BookOpen className="w-8 h-8 text-primary-foreground" />
-            <h1 className="text-2xl md:text-3xl font-heading font-extrabold text-primary-foreground">Belajar Teks Deskripsi</h1>
-          </motion.div>
-          <p className="text-primary-foreground/80 font-body">Halo, <span className="font-bold">{studentName}</span>! Ayo mulai belajar! 🚀</p>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <button
+            onClick={() => { setStarted(false); setActiveStep(0); setHighestStep(0); setSaved(false); }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 transition-colors"
+            title="Kembali ke halaman awal"
+          >
+            <Home className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-3 mb-2">
+              <BookOpen className="w-8 h-8 text-primary-foreground" />
+              <h1 className="text-2xl md:text-3xl font-heading font-extrabold text-primary-foreground">Belajar Teks Deskripsi</h1>
+            </motion.div>
+            <p className="text-primary-foreground/80 font-body">Halo, <span className="font-bold">{studentName}</span>! Ayo mulai belajar! 🚀</p>
+          </div>
         </div>
       </header>
 
@@ -236,7 +265,7 @@ const Index = () => {
             onLabelChange={handleLabelChange}
           />
         )}
-        {activeStep === 1 && <DescriptionTable items={items} onItemsChange={setItems} />}
+        {activeStep === 1 && <DescriptionTable items={items} onItemsChange={handleItemsChange} />}
         {activeStep === 2 && (
           <MindMap
             centerLabel={mindMapCenter}
