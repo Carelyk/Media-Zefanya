@@ -49,7 +49,7 @@ const Index = () => {
     return preset?.name || "";
   }, [selectedItemId, itemLabels]);
 
-  // Keywords from mind map branches
+  // Keywords from mind map branches (the actual values students filled)
   const keywords = useMemo(() => {
     return Object.values(mindMapBranches).filter((v) => v.trim());
   }, [mindMapBranches]);
@@ -83,13 +83,13 @@ const Index = () => {
   // Validation per step
   const canProceedFromStep = (step: number): boolean => {
     switch (step) {
-      case 0: // Pengamatan - must select an item and fill its label
+      case 0:
         return !!selectedItemId && !!selectedItemName;
-      case 1: // Tabel - at least first row must have some data filled
+      case 1:
         return items.length > 0 && items[0].namaBarang.trim() !== "";
-      case 2: // Mind Map - center and at least one branch filled
+      case 2:
         return mindMapCenter.trim() !== "" && Object.values(mindMapBranches).some((v) => v.trim());
-      case 3: // Tulis Teks - text written and all keywords mentioned
+      case 3:
         return descText.trim() !== "" && allKeywordsMatched;
       default:
         return true;
@@ -113,7 +113,6 @@ const Index = () => {
   };
 
   const handleStepClick = (i: number) => {
-    // Can go back freely, but can only go forward if previous steps are completed
     if (i <= highestStep || i <= activeStep) {
       setActiveStep(i);
     } else {
@@ -147,7 +146,6 @@ const Index = () => {
 
   const handleLabelChange = (id: string, label: string) => {
     setItemLabels((prev) => ({ ...prev, [id]: label }));
-    // If this is the selected item, update table and mind map
     if (id === selectedItemId && label.trim()) {
       setItems((prev) => {
         const updated = [...prev];
@@ -280,6 +278,7 @@ const Index = () => {
             text={descText}
             onTextChange={setDescText}
             keywords={keywords}
+            selectedItemName={selectedItemName}
           />
         )}
         {activeStep === 4 && (
@@ -324,7 +323,7 @@ const Index = () => {
         <Link to="/hasil" className="text-primary font-heading font-bold text-sm hover:underline">
           📊 Lihat Semua Hasil Siswa
         </Link>
-        <p className="text-muted-foreground text-xs font-body">🎓 Alat Belajar Teks Deskripsi untuk Siswa SD Kelas 3</p>
+        <p className="text-muted-foreground text-xs font-body">🎓 Belajar Teks Deskripsi untuk Siswa SD Kelas 3</p>
       </footer>
     </div>
   );

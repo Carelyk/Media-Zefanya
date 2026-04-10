@@ -33,9 +33,7 @@ const MindMap = ({ centerLabel, onCenterLabelChange, branches, onBranchChange, r
 
       <div className="p-6">
         <p className="font-body text-muted-foreground text-sm mb-6">
-          {readOnlyCenter
-            ? "Nama benda sudah terisi otomatis dari pilihanmu. Isi setiap cabang berdasarkan tabel yang sudah kamu isi."
-            : "Tuliskan nama benda yang kamu pilih di tengah, lalu isi setiap cabang berdasarkan tabel yang sudah kamu isi."}
+          Nama benda dan cabang sudah terisi otomatis dari tabel yang kamu isi. Kamu bisa mengedit jika perlu.
         </p>
 
         <div className="flex flex-col items-center gap-4">
