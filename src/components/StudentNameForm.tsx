@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { UserRound, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Props {
   onSubmit: (name: string) => void;
@@ -63,6 +64,12 @@ const StudentNameForm = ({ onSubmit }: Props) => {
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
+
+          <div className="px-6 pb-6 text-center">
+            <Link to="/hasil" className="text-primary font-heading font-bold text-sm hover:underline">
+              📊 Lihat Semua Hasil Siswa
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>

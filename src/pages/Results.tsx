@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ClipboardList, ArrowLeft, Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { ClipboardList, ArrowLeft, Lock, ChevronDown, ChevronUp, Trash2, Edit3, Search, ArrowUpDown, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 interface Submission {
   id: string;
@@ -21,8 +22,13 @@ const Results = () => {
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
+  const [storedPassword, setStoredPassword] = useState("");
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortAsc, setSortAsc] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editScore, setEditScore] = useState<number>(0);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +47,7 @@ const Results = () => {
       }
 
       setSubmissions(data.submissions as Submission[]);
+      setStoredPassword(password);
       setAuthenticated(true);
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
@@ -57,6 +64,52 @@ const Results = () => {
       return null;
     }
   };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Yakin ingin menghapus jawaban siswa ini?")) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-teacher", {
+        body: { password: storedPassword, action: "delete", submissionId: id },
+      });
+      if (error || !data?.success) {
+        toast.error("Gagal menghapus.");
+        return;
+      }
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Jawaban berhasil dihapus.");
+    } catch {
+      toast.error("Terjadi kesalahan.");
+    }
+  };
+
+  const handleUpdateScore = async (id: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-teacher", {
+        body: { password: storedPassword, action: "update", submissionId: id, updateData: { score: editScore } },
+      });
+      if (error || !data?.success) {
+        toast.error("Gagal menyimpan.");
+        return;
+      }
+      setSubmissions((prev) => prev.map((s) => s.id === id ? { ...s, score: editScore } : s));
+      setEditingId(null);
+      toast.success("Skor berhasil diperbarui.");
+    } catch {
+      toast.error("Terjadi kesalahan.");
+    }
+  };
+
+  const filteredSubmissions = useMemo(() => {
+    let list = [...submissions];
+    if (searchQuery.trim()) {
+      list = list.filter((s) => s.student_name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    list.sort((a, b) => {
+      const cmp = a.student_name.localeCompare(b.student_name, "id");
+      return sortAsc ? cmp : -cmp;
+    });
+    return list;
+  }, [submissions, searchQuery, sortAsc]);
 
   if (!authenticated) {
     return (
@@ -120,12 +173,35 @@ const Results = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {submissions.length === 0 ? (
-          <p className="text-center text-muted-foreground font-heading py-8">Belum ada jawaban siswa. 📭</p>
+        {/* Search & filter bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama siswa..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-body text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <button
+            onClick={() => setSortAsc(!sortAsc)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-card text-foreground font-heading font-bold text-sm hover:bg-muted/50 transition-colors"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+            {sortAsc ? "A → Z" : "Z → A"}
+          </button>
+        </div>
+
+        {filteredSubmissions.length === 0 ? (
+          <p className="text-center text-muted-foreground font-heading py-8">
+            {submissions.length === 0 ? "Belum ada jawaban siswa. 📭" : "Tidak ditemukan. 🔍"}
+          </p>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground font-body">Total: {submissions.length} jawaban</p>
-            {submissions.map((sub, i) => {
+            <p className="text-sm text-muted-foreground font-body">Total: {filteredSubmissions.length} jawaban</p>
+            {filteredSubmissions.map((sub, i) => {
               const notes = parseNotes(sub.multisensory_notes);
               const isExpanded = expandedId === sub.id;
               return (
@@ -153,11 +229,41 @@ const Results = () => {
 
                   {isExpanded && (
                     <div className="px-4 pb-4 space-y-3 border-t border-border pt-3">
+                      {/* Score editing */}
+                      <div className="flex items-center gap-3">
+                        <p className="font-heading font-bold text-xs text-muted-foreground">⭐ Skor:</p>
+                        {editingId === sub.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={editScore}
+                              onChange={(e) => setEditScore(Number(e.target.value))}
+                              min={0}
+                              max={100}
+                              className="w-20 px-2 py-1 rounded-lg border border-input bg-background text-foreground font-body text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                            <button onClick={() => handleUpdateScore(sub.id)} className="p-1.5 rounded-lg text-accent hover:bg-accent/10">
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted/50">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="font-body text-sm text-foreground">{sub.score ?? 0}</span>
+                            <button onClick={() => { setEditingId(sub.id); setEditScore(sub.score ?? 0); }} className="p-1.5 rounded-lg text-primary hover:bg-primary/10">
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
                       {/* Description text */}
                       {sub.description_text && (
                         <div>
                           <p className="font-heading font-bold text-xs text-muted-foreground mb-1">📝 Teks Deskripsi:</p>
-                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
+                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap text-center">
                             {sub.description_text}
                           </p>
                         </div>
@@ -167,7 +273,7 @@ const Results = () => {
                       {notes?.essayText && (
                         <div>
                           <p className="font-heading font-bold text-xs text-muted-foreground mb-1">✏️ Essai:</p>
-                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
+                          <p className="text-sm font-body text-foreground bg-muted/50 p-3 rounded-lg whitespace-pre-wrap text-center">
                             {notes.essayText}
                           </p>
                         </div>
@@ -178,7 +284,7 @@ const Results = () => {
                         <div>
                           <p className="font-heading font-bold text-xs text-muted-foreground mb-1">🧠 Mind Map:</p>
                           <div className="bg-muted/50 p-3 rounded-lg text-sm font-body">
-                            <p><span className="font-bold">Pusat:</span> {notes.mindMapCenter}</p>
+                            <p><span className="font-bold">Nama:</span> {notes.mindMapCenter}</p>
                             {notes.mindMapBranches && Object.entries(notes.mindMapBranches).map(([key, val]) => (
                               val ? <p key={key}><span className="font-bold capitalize">{key}:</span> {val as string}</p> : null
                             ))}
@@ -218,6 +324,17 @@ const Results = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Delete button */}
+                      <div className="pt-2 border-t border-border flex justify-end">
+                        <button
+                          onClick={() => handleDelete(sub.id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-destructive hover:bg-destructive/10 font-heading font-bold text-xs transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Hapus
+                        </button>
+                      </div>
                     </div>
                   )}
                 </motion.div>

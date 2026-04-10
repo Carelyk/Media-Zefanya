@@ -110,14 +110,6 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
           Tambah Barang
         </button>
       </div>
-
-      <div className="px-4 pb-4">
-        <div className="px-4 py-3 rounded-xl bg-muted/50 border border-border">
-          <p className="font-heading font-bold text-sm text-foreground">
-            📌 Contoh: Setelah mengisi tabel, isilah jawaban di setiap kotak cabang mind map dan tuliskan nama benda yang kamu pilih di tengah cabang.
-          </p>
-        </div>
-      </div>
     </motion.div>
   );
 };

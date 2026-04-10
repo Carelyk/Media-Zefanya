@@ -54,7 +54,7 @@ const MultisensoryCard = ({ selectedItemId, onSelectItem, itemLabels, onLabelCha
 
       <div className="p-6 space-y-4">
         <p className="font-body text-muted-foreground text-sm">
-          Amati setiap barang dengan panca indera. Tuliskan nama barang di bawah gambar, lalu pilih salah satu untuk dideskripsikan! 🔍
+          Amati setiap barang, pilih lalu tuliskan nama barang di bawah gambar 🔍
         </p>
 
         <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">

@@ -6,9 +6,12 @@ interface Props {
   text: string;
   onTextChange: (text: string) => void;
   keywords: string[];
+  selectedItemName?: string;
 }
 
-const TextEditor = ({ text, onTextChange, keywords }: Props) => {
+const KEYWORD_LABELS = ["Warna", "Tekstur", "Ukuran", "Rasa", "Manfaat"];
+
+const TextEditor = ({ text, onTextChange, keywords, selectedItemName }: Props) => {
   const { matched, unmatched } = useMemo(() => {
     const lower = text.toLowerCase();
     const matched: string[] = [];
@@ -41,15 +44,15 @@ const TextEditor = ({ text, onTextChange, keywords }: Props) => {
       <div className="p-6 space-y-4">
         <div className="px-4 py-3 rounded-xl bg-muted/50 border border-border">
           <p className="font-heading font-bold text-sm text-foreground">
-            📌 Setelah kamu mengisi mind mapping tadi, cobalah membuat teks deskripsimu sesuai apa saja yang kamu ketahui dari pengisian tabel dan mind mapping.
+            📌 Deskripsikan barang yang kamu pilih diantara kartu multisensorik{selectedItemName ? ` (${selectedItemName})` : ""}.
           </p>
         </div>
 
-        {/* Keywords from mind map */}
+        {/* Keywords - using category labels, not student values */}
         {keywords.filter((k) => k.trim()).length > 0 && (
           <div className="px-4 py-3 rounded-xl bg-secondary/30 border border-secondary">
             <p className="font-heading font-bold text-sm text-foreground mb-2">
-              🔑 Kata kunci dari Mind Map (harus disebutkan dalam teksmu):
+              🔑 Kata kunci yang harus disebutkan dalam teksmu:
             </p>
             <div className="flex flex-wrap gap-2">
               {keywords.filter((k) => k.trim()).map((kw, i) => {
@@ -63,7 +66,7 @@ const TextEditor = ({ text, onTextChange, keywords }: Props) => {
                         : "bg-destructive/10 text-destructive"
                     }`}
                   >
-                    {isMatched ? "✅" : "❌"} {kw.trim()}
+                    {isMatched ? "✅" : "❌"} {KEYWORD_LABELS[i] || kw.trim()}: {kw.trim()}
                   </span>
                 );
               })}

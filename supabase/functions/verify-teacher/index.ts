@@ -11,7 +11,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { password } = await req.json();
+    const body = await req.json();
+    const { password, action, submissionId, updateData } = body;
 
     if (!password || typeof password !== "string") {
       return new Response(JSON.stringify({ error: "Password required" }), {
@@ -52,7 +53,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch submissions using service role (bypasses RLS)
+    // Handle different actions
+    if (action === "delete" && submissionId) {
+      const { error: delError } = await supabase
+        .from("student_submissions")
+        .delete()
+        .eq("id", submissionId);
+
+      if (delError) {
+        return new Response(JSON.stringify({ error: "Failed to delete" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "update" && submissionId && updateData) {
+      const { error: updError } = await supabase
+        .from("student_submissions")
+        .update(updateData)
+        .eq("id", submissionId);
+
+      if (updError) {
+        return new Response(JSON.stringify({ error: "Failed to update" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Default: fetch submissions
     const { data: submissions, error: fetchError } = await supabase
       .from("student_submissions")
       .select("*")
