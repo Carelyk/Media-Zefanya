@@ -3,8 +3,9 @@ export interface DescriptionItem {
   namaBarang: string;
   warna: string;
   tekstur: string;
-  ukuran: string;
   rasa: string;
+  aroma: string;
+  bunyi: string;
   manfaat: string;
 }
 
