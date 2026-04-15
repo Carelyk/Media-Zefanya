@@ -10,17 +10,18 @@ interface Props {
 const COLUMNS: { key: keyof DescriptionItem; label: string }[] = [
   { key: "namaBarang", label: "Nama Barang" },
   { key: "warna", label: "Warna" },
-  { key: "tekstur", label: "Tekstur" },
-  { key: "ukuran", label: "Ukuran" },
   { key: "rasa", label: "Rasa" },
-  { key: "manfaat", label: "Manfaat / Kegunaan" },
+  { key: "tekstur", label: "Tekstur" },
+  { key: "aroma", label: "Aroma" },
+  { key: "bunyi", label: "Bunyi" },
+  { key: "manfaat", label: "Manfaat" },
 ];
 
 const DescriptionTable = ({ items, onItemsChange }: Props) => {
   const addRow = () => {
     onItemsChange([
       ...items,
-      { id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", ukuran: "", rasa: "", manfaat: "" },
+      { id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", rasa: "", aroma: "", bunyi: "", manfaat: "" },
     ]);
   };
 
@@ -38,16 +39,16 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
       animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl bg-card shadow-card-fun border border-border overflow-hidden"
     >
-      <div className="bg-gradient-fun px-6 py-4 flex items-center gap-3">
-        <Sparkles className="w-6 h-6 text-primary-foreground" />
-        <h2 className="text-xl font-heading font-bold text-primary-foreground">
+      <div className="bg-gradient-fun px-4 sm:px-6 py-4 flex items-center gap-3">
+        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
+        <h2 className="text-lg sm:text-xl font-heading font-bold text-primary-foreground">
           📝 Tabel Deskripsi Barang
         </h2>
       </div>
 
-      <div className="p-4">
-        <p className="font-body text-muted-foreground text-sm mb-4">
-          Isilah tabel di bawah ini berdasarkan pengamatan yang sudah kamu lakukan terhadap barang yang kamu pilih. Kosongkan jika tidak ada.
+      <div className="p-3 sm:p-4">
+        <p className="font-body text-muted-foreground text-xs sm:text-sm mb-3">
+          Isilah tabel di bawah ini berdasarkan pengamatan yang sudah kamu lakukan. Kosongkan jika tidak ada.
         </p>
       </div>
 
@@ -55,13 +56,13 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
         <table className="w-full">
           <thead>
             <tr className="bg-muted">
-              <th className="px-3 py-3 text-left font-heading font-bold text-foreground text-xs w-10">No</th>
+              <th className="px-2 sm:px-3 py-2 sm:py-3 text-left font-heading font-bold text-foreground text-[10px] sm:text-xs w-8 sm:w-10">No</th>
               {COLUMNS.map((col) => (
-                <th key={col.key} className="px-3 py-3 text-left font-heading font-bold text-foreground text-xs">
+                <th key={col.key} className="px-2 sm:px-3 py-2 sm:py-3 text-left font-heading font-bold text-foreground text-[10px] sm:text-xs">
                   {col.label}
                 </th>
               ))}
-              <th className="px-3 py-3 text-center font-heading font-bold text-foreground text-xs w-12">Aksi</th>
+              <th className="px-2 sm:px-3 py-2 sm:py-3 text-center font-heading font-bold text-foreground text-[10px] sm:text-xs w-10 sm:w-12">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -75,23 +76,24 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
                   transition={{ delay: index * 0.05 }}
                   className="border-t border-border hover:bg-muted/50 transition-colors"
                 >
-                  <td className="px-3 py-2 font-heading font-bold text-primary text-sm">{index + 1}</td>
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 font-heading font-bold text-primary text-xs sm:text-sm">{index + 1}</td>
                   {COLUMNS.map((col) => (
-                    <td key={col.key} className="px-3 py-2">
+                    <td key={col.key} className="px-2 sm:px-3 py-1.5 sm:py-2">
                       <input
                         type="text"
                         value={item[col.key] as string}
                         onChange={(e) => updateItem(item.id, col.key, e.target.value)}
-                        className="w-full px-2 py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-xs min-w-[100px]"
+                        readOnly={col.key === "namaBarang" && index === 0}
+                        className={`w-full px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-[10px] sm:text-xs min-w-[70px] sm:min-w-[90px] ${col.key === "namaBarang" && index === 0 ? "bg-muted/50 cursor-default" : ""}`}
                       />
                     </td>
                   ))}
-                  <td className="px-3 py-2 text-center">
+                  <td className="px-2 sm:px-3 py-1.5 sm:py-2 text-center">
                     <button
                       onClick={() => removeItem(item.id)}
-                      className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                      className="p-1 sm:p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </td>
                 </motion.tr>
@@ -101,12 +103,12 @@ const DescriptionTable = ({ items, onItemsChange }: Props) => {
         </table>
       </div>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-3 sm:p-4 border-t border-border">
         <button
           onClick={addRow}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm hover:opacity-90 transition-opacity shadow-fun"
+          className="flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity shadow-fun"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           Tambah Barang
         </button>
       </div>
