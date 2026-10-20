@@ -1,22 +1,32 @@
-# Welcome to your Lovable project
+# Media Zefanya
 
-## Project info
+Media Zefanya adalah aplikasi berbasis web yang dibangun dengan teknologi modern untuk kebutuhan media dan manajemen konten.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Teknologi yang Digunakan
 
-## How can I edit this code?
+- Vite
+- TypeScript
+- React
+- shadcn/ui
+- Tailwind CSS
 
-There are several ways of editing your application.
+## Cara Menjalankan Secara Lokal
 
-**Use Lovable**
+```sh
+# Step 1: Clone repositori
+git clone https://github.com/Carelyk/Media-Zefanya.git
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+# Step 2: Masuk ke direktori project
+cd Media-Zefanya
 
-Changes made via Lovable will be committed automatically to this repo.
+# Step 3: Install dependencies
+npm install
 
-**Use your preferred IDE**
+# Step 4: Jalankan development server
+npm run dev
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Server akan berjalan di http://localhost:8080 (atau port lain sesuai konfigurasi).
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
