@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { BookOpen, ChevronRight, ChevronLeft, Home } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, ChevronRight, ChevronLeft, Home, Check, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { IconEye, IconPencil, IconMindMap, IconBookOpen, IconRobot, IconTarget, IconStar } from "@/components/Icons";
 import StudentNameForm from "@/components/StudentNameForm";
 import MultisensoryCard, { PRESET_ITEMS } from "@/components/MultisensoryCard";
 import DescriptionTable from "@/components/DescriptionTable";
@@ -17,11 +18,21 @@ const EMPTY_ITEM = (): DescriptionItem => ({
   id: crypto.randomUUID(), namaBarang: "", warna: "", tekstur: "", rasa: "", aroma: "", bunyi: "", manfaat: "",
 });
 
+const STEPS = [
+  { icon: <IconEye className="w-4 h-4" />, title: "Pengamatan", chapter: "Amati Barang" },
+  { icon: <IconPencil className="w-4 h-4" />, title: "Isi Tabel", chapter: "Catatan Indra" },
+  { icon: <IconMindMap className="w-4 h-4" />, title: "Mind Map", chapter: "Peta Gagasan" },
+  { icon: <IconBookOpen className="w-4 h-4" />, title: "Tulis Teks", chapter: "Tulis Deskripsi" },
+  { icon: <IconRobot className="w-4 h-4" />, title: "AI", chapter: "Bantuan AI" },
+  { icon: <IconTarget className="w-4 h-4" />, title: "Hasil", chapter: "Simpan Karya" },
+];
+
 const Index = () => {
   const [studentName, setStudentName] = useState("");
   const [started, setStarted] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [highestStep, setHighestStep] = useState(0);
+  const [turnDir, setTurnDir] = useState<1 | -1>(1);
 
   const [selectedItemId, setSelectedItemId] = useState("");
   const [itemLabels, setItemLabels] = useState<Record<string, string>>({});
@@ -77,28 +88,32 @@ const Index = () => {
     }
   };
 
-  const handleNext = () => {
-    if (!canProceedFromStep(activeStep)) {
-      const messages = [
-        "Pilih salah satu barang dan isi namanya terlebih dahulu! 🔍",
-        "Lengkapi data barang di tabel terlebih dahulu! 📝",
-        "Isi nama benda dan minimal satu cabang mind map! 🧠",
-        "Tuliskan teks deskripsi dan sebutkan semua kata kunci! ✍️",
-        "Lanjutkan saja! 🤖",
-      ];
-      toast.warning(messages[activeStep] || "Lengkapi bagian ini dulu!");
-      return;
-    }
-    const next = activeStep + 1;
+  const goToStep = (next: number) => {
+    setTurnDir(next > activeStep ? 1 : -1);
     setActiveStep(next);
     if (next > highestStep) setHighestStep(next);
   };
 
+  const handleNext = () => {
+    if (!canProceedFromStep(activeStep)) {
+      const messages = [
+        "Pilih dulu satu barang yang akan kamu deskripsikan!",
+        "Isilah nama barang di tabel sebelum membalik halaman!",
+        "Isi nama benda dan minimal satu cabang peta gagasan!",
+        "Tuliskan teks deskripsimu dan sebutkan semua kata kunci!",
+        "Halaman ini boleh dilewati, langsung lanjut saja!",
+      ];
+      toast.warning(messages[activeStep] || "Lengkapi halaman ini dulu!");
+      return;
+    }
+    goToStep(activeStep + 1);
+  };
+
   const handleStepClick = (i: number) => {
     if (i <= highestStep || i <= activeStep) {
-      setActiveStep(i);
+      goToStep(i);
     } else {
-      toast.warning("Selesaikan langkah sebelumnya terlebih dahulu! ⏳");
+      toast.warning("Selesaikan halaman sebelumnya terlebih dahulu!");
     }
   };
 
@@ -157,7 +172,7 @@ const Index = () => {
         toast.error("Gagal menyimpan. Coba lagi!");
       } else {
         setSaved(true);
-        toast.success("Jawaban berhasil disimpan! ✅");
+        toast.success("Jawaban berhasil disimpan!");
       }
     } catch (err) {
       console.error(err);
@@ -171,143 +186,161 @@ const Index = () => {
     return <StudentNameForm onSubmit={(name) => { setStudentName(name); setStarted(true); }} />;
   }
 
-  const steps = [
-    { icon: "👀", title: "Pengamatan" },
-    { icon: "📝", title: "Isi Tabel" },
-    { icon: "🧠", title: "Mind Map" },
-    { icon: "✍️", title: "Tulis Teks" },
-    { icon: "🤖", title: "AI" },
-    { icon: "🎯", title: "Hasil" },
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="relative overflow-hidden bg-gradient-fun py-6 sm:py-8 px-3 sm:px-4">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 left-10 text-4xl sm:text-6xl animate-bounce-gentle">📚</div>
-          <div className="absolute top-8 right-20 text-3xl sm:text-5xl animate-bounce-gentle" style={{ animationDelay: "0.5s" }}>✏️</div>
-        </div>
-        <div className="max-w-4xl mx-auto relative z-10">
+    <div className="min-h-screen">
+      {/* Kepala halaman */}
+      <header className="pt-6 sm:pt-8 px-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <button
             onClick={() => { setStarted(false); setActiveStep(0); setHighestStep(0); setSaved(false); }}
-            className="absolute left-0 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-xl bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-card border border-border font-heading font-bold text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors shadow-sticker"
             title="Kembali ke halaman awal"
           >
-            <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Home className="w-4 h-4" />
+            <span className="hidden sm:inline">Sampul</span>
           </button>
-          <div className="text-center">
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-              <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-heading font-extrabold text-primary-foreground">Belajar Teks Deskripsi</h1>
-            </motion.div>
-            <p className="text-primary-foreground/80 font-body text-xs sm:text-sm">Halo, <span className="font-bold">{studentName}</span>! Ayo mulai belajar! 🚀</p>
+          <div className="text-center flex-1">
+            <h1 className="font-heading font-extrabold text-xl sm:text-2xl flex items-center justify-center gap-2">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+              Belajar Teks Deskripsi
+            </h1>
+            <p className="text-muted-foreground text-xs sm:text-sm">
+              Halo, <span className="font-bold text-foreground">{studentName}</span>, mari kita buka bab berikutnya!
+            </p>
           </div>
+          <div className="w-20 sm:w-28" />
         </div>
       </header>
 
-      {/* Steps */}
-      <div className="max-w-5xl mx-auto px-2 sm:px-4 -mt-4 sm:-mt-5 relative z-20">
-        <div className="flex gap-1 sm:gap-2 justify-center flex-wrap">
-          {steps.map((step, i) => {
+      {/* Bab-bab buku */}
+      <div className="max-w-4xl mx-auto px-4 mt-5">
+        <div className="flex gap-1.5 sm:gap-2 justify-center flex-wrap">
+          {STEPS.map((step, i) => {
             const isAccessible = i <= highestStep || i <= activeStep;
+            const isDone = i < highestStep && i !== activeStep;
             return (
               <button
                 key={i}
                 onClick={() => handleStepClick(i)}
-                className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-heading font-bold text-[10px] sm:text-xs transition-all shadow-card-fun ${
-                  activeStep === i
-                    ? "bg-card text-foreground scale-105 border-2 border-primary"
-                    : isAccessible
-                      ? "bg-card/80 text-muted-foreground border border-border hover:bg-card cursor-pointer"
-                      : "bg-muted/50 text-muted-foreground/50 border border-border/50 cursor-not-allowed"
-                }`}
                 disabled={!isAccessible}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-t-lg font-heading font-bold text-[11px] sm:text-xs transition-all border-2 ${
+                  activeStep === i
+                    ? "bg-card border-border border-b-card text-foreground -mb-[2px] shadow-[0_-3px_10px_-4px_hsl(var(--foreground)/0.15)]"
+                    : isAccessible
+                      ? "bg-muted/60 border-transparent text-muted-foreground hover:text-foreground cursor-pointer"
+                      : "bg-muted/30 border-transparent text-muted-foreground/40 cursor-not-allowed"
+                }`}
               >
-                <span className="text-sm sm:text-base">{step.icon}</span>
-                <span className="hidden xs:inline sm:inline">{step.title}</span>
+                <span className="text-sm flex items-center">{isDone ? <Check className="w-4 h-4 text-primary" /> : step.icon}</span>
+                <span className="hidden sm:inline">{step.title}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-5 sm:py-8 space-y-4 sm:space-y-6">
-        {activeStep === 0 && (
-          <MultisensoryCard
-            selectedItemId={selectedItemId}
-            onSelectItem={handleSelectItem}
-            itemLabels={itemLabels}
-            onLabelChange={handleLabelChange}
-          />
-        )}
-        {activeStep === 1 && <DescriptionTable items={items} onItemsChange={handleItemsChange} />}
-        {activeStep === 2 && (
-          <MindMap
-            centerLabel={mindMapCenter}
-            onCenterLabelChange={setMindMapCenter}
-            branches={mindMapBranches}
-            onBranchChange={handleBranchChange}
-            readOnlyCenter
-          />
-        )}
-        {activeStep === 3 && (
-          <TextEditor
-            text={descText}
-            onTextChange={setDescText}
-            keywords={keywords}
-            selectedItemName={selectedItemName}
-          />
-        )}
-        {activeStep === 4 && (
-          <AiExpander
-            sourceText={descText}
-            expandedText={expandedText}
-            onExpandedTextChange={setExpandedText}
-          />
-        )}
-        {activeStep === 5 && (
-          <ScoreDisplay
-            studentName={studentName}
-            essayText={essayText}
-            onEssayChange={setEssayText}
-            onSave={handleSave}
-            saving={saving}
-            saved={saved}
-          />
-        )}
+      {/* Halaman buku */}
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 pb-4" style={{ perspective: 1600 }}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeStep}
+            initial={{ rotateY: turnDir * 28, opacity: 0, x: turnDir * 60 }}
+            animate={{ rotateY: 0, opacity: 1, x: 0 }}
+            exit={{ rotateY: turnDir * -28, opacity: 0, x: turnDir * -60 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: turnDir === 1 ? "left center" : "right center" }}
+            className="book-page mt-0 px-4 sm:px-10 pt-8 sm:pt-10 pb-7 sm:pb-9"
+          >
+            <div className="washi washi-pink" style={{ left: 36, transform: "rotate(-5deg)" }} />
+            <div className="washi washi-yellow" style={{ right: 44, transform: "rotate(4deg)" }} />
+            <div className="bookmark-ribbon" />
 
-        {/* Navigation */}
-        <div className="flex justify-center gap-2 sm:gap-3">
-          {activeStep > 0 && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={() => setActiveStep((s) => s - 1)}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-secondary text-secondary-foreground font-heading font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              Kembali
-            </motion.button>
-          )}
-          {activeStep < 5 && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={handleNext}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity shadow-fun"
-            >
-              Lanjut ke {steps[activeStep + 1].title}
-              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </motion.button>
-          )}
-        </div>
+            <p className="font-note text-xl sm:text-2xl text-muted-foreground -rotate-1 pl-5">
+              bab {activeStep + 1}: {STEPS[activeStep].chapter}
+            </p>
+
+            <div className="pl-5">
+              {activeStep === 0 && (
+                <MultisensoryCard
+                  selectedItemId={selectedItemId}
+                  onSelectItem={handleSelectItem}
+                  itemLabels={itemLabels}
+                  onLabelChange={handleLabelChange}
+                />
+              )}
+              {activeStep === 1 && <DescriptionTable items={items} onItemsChange={handleItemsChange} />}
+              {activeStep === 2 && (
+                <MindMap
+                  centerLabel={mindMapCenter}
+                  onCenterLabelChange={setMindMapCenter}
+                  branches={mindMapBranches}
+                  onBranchChange={handleBranchChange}
+                  readOnlyCenter
+                />
+              )}
+              {activeStep === 3 && (
+                <TextEditor
+                  text={descText}
+                  onTextChange={setDescText}
+                  keywords={keywords}
+                  selectedItemName={selectedItemName}
+                />
+              )}
+              {activeStep === 4 && (
+                <AiExpander
+                  sourceText={descText}
+                  expandedText={expandedText}
+                  onExpandedTextChange={setExpandedText}
+                />
+              )}
+              {activeStep === 5 && (
+                <ScoreDisplay
+                  studentName={studentName}
+                  essayText={essayText}
+                  onEssayChange={setEssayText}
+                  onSave={handleSave}
+                  saving={saving}
+                  saved={saved}
+                />
+              )}
+
+              {/* Navigasi halaman */}
+              <div className="flex justify-between gap-3 mt-7 pt-5 border-t-2 border-dashed border-border">
+                {activeStep > 0 ? (
+                  <button
+                    onClick={() => goToStep(activeStep - 1)}
+                    className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl bg-muted text-foreground font-heading font-bold text-sm hover:bg-muted/70 active:translate-y-0.5 transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Balik Halaman
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {activeStep < 5 && (
+                  <button
+                    onClick={handleNext}
+                    className="inline-flex items-center gap-1.5 px-5 sm:px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm hover:brightness-110 active:translate-y-0.5 transition-all shadow-[0_4px_0_hsl(var(--primary)/0.6)]"
+                  >
+                    {STEPS[activeStep + 1].title}
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      <footer className="text-center py-4 sm:py-6 space-y-2">
-        <Link to="/hasil" className="text-primary font-heading font-bold text-xs sm:text-sm hover:underline">
-          📊 Lihat Semua Hasil Siswa
+      <footer className="text-center py-6 space-y-3">
+        <Link to="/hasil" className="inline-flex items-center gap-1.5 text-primary font-heading font-bold text-sm hover:underline">
+          <GraduationCap className="w-4 h-4" />
+          Halaman Guru: lihat semua jawaban siswa
         </Link>
-        <p className="text-muted-foreground text-[10px] sm:text-xs font-body">🎓 Belajar Teks Deskripsi untuk Siswa SD Kelas 3</p>
+        <p className="text-muted-foreground text-xs flex items-center justify-center gap-1.5">
+          <IconBookOpen className="w-3.5 h-3.5" />
+          Belajar Teks Deskripsi untuk Siswa SD Kelas 3
+        </p>
       </footer>
     </div>
   );

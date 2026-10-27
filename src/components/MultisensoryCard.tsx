@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye } from "lucide-react";
+import { IconEye, IconStar } from "@/components/Icons";
 
 import maduImg from "@/assets/madu.jpeg";
 import loncengImg from "@/assets/lonceng.jpeg";
@@ -40,41 +39,40 @@ interface Props {
 
 const MultisensoryCard = ({ selectedItemId, onSelectItem, itemLabels, onLabelChange }: Props) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-card shadow-card-fun border border-border overflow-hidden"
-    >
-      <div className="bg-gradient-warm px-6 py-4 flex items-center gap-3">
-        <Eye className="w-6 h-6 text-primary-foreground" />
-        <h2 className="text-xl font-heading font-bold text-primary-foreground">
-          👀 Pengamatan Multisensorik
-        </h2>
-      </div>
+    <div>
+      <h2 className="font-heading font-extrabold text-xl sm:text-2xl flex items-center gap-2">
+        <IconEye className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+        Amati setiap barang
+      </h2>
+      <p className="text-muted-foreground text-sm mt-1 mb-5">
+        Pilih satu barang yang paling menarik, lalu tuliskan namamu sendiri di bawah gambarnya.
+      </p>
 
-      <div className="p-6 space-y-4">
-        <p className="font-body text-muted-foreground text-sm">
-          Amati setiap barang, pilih lalu tuliskan nama barang di bawah gambar 🔍
-        </p>
-
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4">
-          {PRESET_ITEMS.map((item, idx) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
+        {PRESET_ITEMS.map((item, idx) => {
+          const isSelected = selectedItemId === item.id;
+          const tilt = idx % 2 === 0 ? "-1.6deg" : "1.4deg";
+          return (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.05 }}
-              className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                selectedItemId === item.id
-                  ? "border-primary bg-primary/10 shadow-fun"
-                  : "border-border hover:border-primary/50"
-              }`}
+              initial={{ opacity: 0, y: 14, rotate: 0 }}
+              animate={{ opacity: 1, y: 0, rotate: isSelected ? 0 : parseFloat(tilt) }}
+              transition={{ delay: idx * 0.04, type: "spring", stiffness: 180, damping: 18 }}
+              whileHover={{ y: -4, rotate: 0, scale: 1.02 }}
               onClick={() => onSelectItem(item.id)}
+              className={`relative flex flex-col gap-2 p-3 rounded-xl bg-card border-2 cursor-pointer transition-colors shadow-sticker ${
+                isSelected ? "border-primary" : "border-border/80 hover:border-primary/40"
+              }`}
             >
+              {isSelected && (
+                <span className="absolute -top-3 right-3 font-note text-xl text-accent -rotate-6">
+                  punyamu! ↖
+                </span>
+              )}
               <img
                 src={item.image}
                 alt={item.name}
-                className="w-full aspect-square object-cover rounded-lg"
+                className="w-full aspect-square object-cover rounded-lg border border-border"
               />
               <input
                 type="text"
@@ -82,26 +80,26 @@ const MultisensoryCard = ({ selectedItemId, onSelectItem, itemLabels, onLabelCha
                 onChange={(e) => onLabelChange(item.id, e.target.value)}
                 onClick={(e) => e.stopPropagation()}
                 placeholder="Nama barang..."
-                className="w-full px-2 py-1.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-body text-xs text-center"
+                className="w-full px-2 py-1.5 rounded-lg border border-dashed border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-semibold text-xs text-center"
               />
             </motion.div>
-          ))}
-        </div>
-
-        {selectedItemId && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/10 border border-accent/30"
-          >
-            <span className="text-lg">✅</span>
-            <p className="font-heading font-bold text-sm text-foreground">
-              Bagus! Kamu memilih barang untuk dideskripsikan. Lanjut ke tabel!
-            </p>
-          </motion.div>
-        )}
+          );
+        })}
       </div>
-    </motion.div>
+
+      {selectedItemId && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 flex justify-center"
+        >
+          <span className="stamp text-sm inline-flex items-center gap-1.5">
+            <IconStar className="w-4 h-4" />
+            Bagus! Barang sudah dipilih
+          </span>
+        </motion.div>
+      )}
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Copy, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { IconRobot, IconPencil } from "@/components/Icons";
 
 interface Props {
   sourceText: string;
@@ -15,7 +16,7 @@ const AiExpander = ({ sourceText, expandedText, onExpandedTextChange }: Props) =
 
   const handleExpand = async () => {
     if (!sourceText.trim()) {
-      toast.warning("Salin dulu teks dari langkah sebelumnya!");
+      toast.warning("Salin dulu teks dari halaman sebelumnya!");
       return;
     }
     setLoading(true);
@@ -34,7 +35,7 @@ const AiExpander = ({ sourceText, expandedText, onExpandedTextChange }: Props) =
       }
       if (data?.result) {
         onExpandedTextChange(data.result);
-        toast.success("Teks berhasil dikembangkan! ✨");
+        toast.success("Teks berhasil dikembangkan!");
       }
     } catch (err) {
       console.error(err);
@@ -50,52 +51,49 @@ const AiExpander = ({ sourceText, expandedText, onExpandedTextChange }: Props) =
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-card shadow-card-fun border border-border overflow-hidden"
-    >
-      <div className="bg-gradient-warm px-4 sm:px-6 py-4 flex items-center gap-3">
-        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
-        <h2 className="text-lg sm:text-xl font-heading font-bold text-primary-foreground">
-          🤖 Kembangkan Teks dengan AI
-        </h2>
-      </div>
+    <div>
+      <h2 className="font-heading font-extrabold text-xl sm:text-2xl flex items-center gap-2">
+        <IconRobot className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+        Bantuan Si Pintar
+      </h2>
+      <p className="text-muted-foreground text-sm mt-1 mb-5">
+        Halaman ini boleh dilewati. Jika ingin, teksmu bisa dibantu agar lebih rinci dan detail.
+      </p>
 
-      <div className="p-4 sm:p-6 space-y-4">
-        <div className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-muted/50 border border-border">
-          <p className="font-heading font-bold text-xs sm:text-sm text-foreground">
-            📌 Salin kalimat yang sudah berisi kata kunci yang telah kamu rangkai ke bawah ini. Dan tambahkan kalimat "kembangkan kalimat ini agar semakin rinci dan detail untuk menjadi sebuah teks deskripsi"
+      {sourceText.trim() && (
+        <div className="mb-4 bg-muted/50 border border-border rounded-xl p-4">
+          <p className="flex items-center gap-1.5 font-heading font-bold text-xs text-muted-foreground mb-1">
+            <IconPencil className="w-3.5 h-3.5" />
+            Teks dari halaman sebelumnya:
           </p>
+          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{sourceText}</p>
+          <button
+            onClick={handleCopySource}
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border text-primary font-heading font-bold text-xs hover:border-primary/50 transition-colors"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Salin ke kotak bawah
+          </button>
         </div>
+      )}
 
-        {/* Source text preview */}
-        {sourceText.trim() && (
-          <div className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-secondary/20 border border-secondary">
-            <p className="font-heading font-bold text-xs text-muted-foreground mb-1">📝 Teks dari langkah sebelumnya:</p>
-            <p className="font-body text-xs sm:text-sm text-foreground whitespace-pre-wrap">{sourceText}</p>
-            <button
-              onClick={handleCopySource}
-              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary font-heading font-bold text-xs hover:bg-primary/20 transition-colors"
-            >
-              <Copy className="w-3.5 h-3.5" />
-              Salin ke kotak bawah
-            </button>
-          </div>
-        )}
-
+      <div className="book-page overflow-hidden mb-4">
+        <div className="washi washi-yellow" style={{ left: 30, transform: "rotate(-4deg)" }} />
         <textarea
           value={expandedText}
           onChange={(e) => onExpandedTextChange(e.target.value)}
-          placeholder="Teks yang sudah disalin akan muncul di sini, lalu tekan tombol AI untuk mengembangkan..."
+          placeholder="Teks hasil pengembangan akan muncul di sini, dan boleh kamu perbaiki sendiri..."
           rows={6}
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary font-body text-xs sm:text-sm leading-relaxed resize-none"
+          className="ruled w-full bg-transparent px-5 sm:px-7 pt-4 pb-4 text-foreground placeholder:text-muted-foreground focus:outline-none font-semibold text-base resize-none"
+          style={{ fontSize: "1.05rem" }}
         />
+      </div>
 
+      <div className="flex justify-center">
         <button
           onClick={handleExpand}
           disabled={loading || !expandedText.trim()}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto mx-auto px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-xs sm:text-sm hover:opacity-90 transition-opacity shadow-fun disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-heading font-bold text-sm hover:brightness-110 active:translate-y-0.5 transition-all shadow-[0_4px_0_hsl(var(--primary)/0.6)] disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
@@ -105,12 +103,12 @@ const AiExpander = ({ sourceText, expandedText, onExpandedTextChange }: Props) =
           ) : (
             <>
               <Sparkles className="w-4 h-4" />
-              🤖 Kembangkan dengan AI
+              Kembangkan dengan AI
             </>
           )}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

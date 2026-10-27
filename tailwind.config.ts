@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ["Nunito", "sans-serif"],
-        body: ["Comic Neue", "cursive"],
+        heading: ["'Baloo 2'", "Nunito", "sans-serif"],
+        body: ["Nunito", "sans-serif"],
+        note: ["Caveat", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -60,10 +61,10 @@ export default {
           foreground: "hsl(var(--success-foreground))",
         },
         fun: {
-          pink: "hsl(var(--fun-pink))",
-          orange: "hsl(var(--fun-orange))",
-          yellow: "hsl(var(--fun-yellow))",
-          cyan: "hsl(var(--fun-cyan))",
+          pink: "hsl(var(--tape-pink))",
+          blue: "hsl(var(--tape-blue))",
+          yellow: "hsl(var(--tape-yellow))",
+          ribbon: "hsl(var(--ribbon))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
