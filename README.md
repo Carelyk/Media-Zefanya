@@ -1,36 +1,25 @@
-# 🎓 Media-Zefanya v1 (Skripsi)
+# 🌟 Media-Zefanya v1 (Tema Indra Penglihatan & Pengamatan)
 
-> *Halo semuanya! Selamat datang di aplikasi web super keren buat ngurusin data skripsi kakak-kakak tingkat! 📚✨ Dibuat khusus biar hidup mahasiswa tingkat akhir jadi lebih tenang, terstruktur, dan nggak bikin pusing tujuh keliling!*
-
----
-
-## 🌟 Fitur-Fitur Seru di Dalamnya
-
-- 📋 **Manajemen Skripsi Kilat** - Mau tambah, edit, hapus, atau intip data skripsi mahasiswa? Tinggal klik-klik aja, semua beres dalam sekejap!
-- ⭐ **Penilaian Nilai 1-100** - Masukin nilai skripsi dengan validasi angka yang pas, jadi dosen penguji nggak bakal salah ketik nilai lagi deh.
-- 🔍 **Pencarian & Sorting Super Cepat** - Cari judul skripsi atau nama mahasiswa tinggal ketik dikit, langsung ketemu! Ditambah tombol sortir otomatis biar datanya makin rapi.
-- 🔐 **Mode Guru (Secret Password)** - Ada tombol rahasia khusus guru/dosen pembimbing buat verifikasi nilai. Cukup masukkan password aja (`zefanya123`) dan akses spesial langsung terbuka!
-- ☁️ **Nyambung ke Supabase** - Data aman jaya tersimpan di cloud Supabase (`dytcoemthbngxoamoetr`) pada tabel `skripsi`. Anti ilang-ilang club!
+> *Halo anak-anak kelas 3 SD yang cerdas! 👁️✨ Selamat datang di aplikasi belajar tematik bersama Bu Guru Zefanya! Hari ini kita latihan mengamati dan memetakan objek di sekitar menggunakan indra penglihatan kita.*
 
 ---
 
-## 🛠️ Tech Stack & Alat Perang
+## 🎨 Apa Saja yang Bisa Kita Lakukan di Sini?
 
-- **Frontend:** HTML5, CSS3 / Tailwind CSS (Biar tampilannya gaul dan enak dipandang mata)
-- **Backend / Database:** Supabase PostgreSQL (`dytcoemthbngxoamoetr`)
-- **Server Lokal:** PM2 Process Manager (Jalan terus 24 jam di port `8080`)
-
----
-
-## 📊 Perbandingan Versi Media-Zefanya (v1, v2, v3)
-
-Biar nggak bingung bedanya apa aja, yuk intip tabel perbandingan gaul di bawah ini:
-
-| Versi | Topik Aplikasi | Tabel Supabase | Port PM2 | Repository GitHub | Penjelasan Singkat |
-|---|---|---|---|---|---|
-| **v1** 🎓 | Skripsi | `skripsi` | `8080` | `Carelyk/Media-Zefanya` | Buat ngurusin judul skripsi dan nilai mahasiswa |
-| **v2** 📚 | Buku | `buku` | `8081` | `Carelyk/Media-Zefanya-v2` | Buat inventaris perpustakaan dan data buku bacaan |
-| **v3** 🌳 | Taman | `taman` | `8082` | `Carelyk/Media-Zefanya-v3` | Buat pendataan tanaman dan fasilitas taman kota |
+- 📝 **Catat Hasil Pengamatan** - Masukin nama objek, hasil pengamatan, dan skor penilaian pengamatan dari angka 1 sampai 100 dengan mudah!
+- 🔍 **Cari Data Objek** - Mau nyari hasil pengamatanmu? Ketik sedikit di kotak pencarian, langsung ketemu dalam sekejap!
+- 👩‍🏫 **Mode Khusus Bu Guru** - Ada tombol rahasia buat Bu Guru Zefanya (pakai sandi rahasia `zefanya123`) untuk memeriksa dan menilai hasil kerja kelompok kelas.
+- ☁️ **Simpan di Awan** - Semua data tersimpan aman di penyimpanan awan Supabase, jadi nggak bakal hilang!
 
 ---
-*Dibuat dengan penuh semangat dan secangkir kopi ☕ oleh Tim Pengembang.*
+
+## 📊 Perbandingan Tema Aplikasi Belajar Kita (v1, v2, v3)
+
+| Versi | Tema / Objek Latihan Indra | Tabel Database | Port Server |
+|---|---|---|---|
+| **v1** 👁️ | Tema Pengamatan Objek & Tugas Kelas | `skripsi` | `8080` |
+| **v2** 📚 | Tema Pengamatan Buku & Teks Bacaan | `buku` | `8081` |
+| **v3** 🌳 | Tema Pengamatan Lingkungan & Tanaman | `taman` | `8082` |
+
+---
+*Dibuat khusus dengan penuh ceria untuk Kelas 3 SD bimbingan Bu Guru Zefanya! 🍎✏️*
